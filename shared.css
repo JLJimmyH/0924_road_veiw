@@ -56,61 +56,67 @@ figure.fig figcaption b { color: #1d2330; }
 .tabs2 span.on { background: #4A9FF5; color: #fff; }
 .tabs2 svg { width: 18px; height: 18px; flex: none; }
 .roadbar2 { margin: 12px 12px 0; flex: none; display: flex; align-items: center; height: 56px; padding: 0 14px; border: 1px solid #3b3d42; border-radius: 14px; background: #24262A; }
-.roadbar2 .n { flex: 1; text-align: center; font-size: 20px; letter-spacing: 1px; }
+/* 盾牌就代表這條路，不再另外寫路名（沒有盾牌圖的路才寫文字，和 app 的選路視窗一樣） */
+.roadbar2 .n { flex: 1; display: flex; justify-content: center; padding-left: 24px; }
 .roadbar2 svg { width: 24px; height: 24px; }
 .fab2 { position: absolute; right: 14px; bottom: 16px; width: 58px; height: 58px; border-radius: 50%; background: #4A9FF5; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0, 0, 0, .45); z-index: 5; }
 .fab2 svg { width: 26px; height: 26px; }
 
 /* ===== 卡片（hcard.js） ===== */
 .hcl { padding: 12px 8px 96px; display: flex; flex-direction: column; gap: 12px; }
-.hc { flex: none; border: 1px solid #3b3d42; border-radius: 12px; background: #24262A; overflow: hidden; }
-.hc-h { min-height: 46px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 4px 12px 4px 16px; border-bottom: 1px solid #3b3d42; }
-.hc.last .hc-h { border-bottom: 0; }
-.hc-n { font-size: 18px; letter-spacing: 1px; }
-.hc-km { font-size: 13.5px; padding: 1px 12px; border-radius: 999px; border: 1px solid #45474c; background: #2b2d31; white-space: nowrap; }
+/* 整串交流道包在一個大區塊裡（和上方道路列同樣的細框），區塊裡面不再分隔 */
+.hcs { border: 1px solid #3b3d42; border-radius: 14px; background: #24262A; overflow: hidden; }
+.hmini .hcs { flex: none; border-color: transparent; } /* 主畫面外面已經有 panel 框；保留 1px 透明框，寬度才和 hGeom(324) 對齊 */
+.hc { flex: none; overflow: hidden; }
+.hc-row { position: relative; }
+.hc-row > svg { position: absolute; left: 0; top: 0; }
+.hc-node { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; white-space: nowrap; }
+/* 出口編號牌：和高速公路上的一樣黃底黑字、內圈細黑框，里程數字在前（顏色同 app 主畫面的交流道標籤）；休息站藍底白字 */
+.hc-plate { display: flex; align-items: baseline; gap: 6px; padding: 1px 10px; border-radius: 4px; background: #FFB62F; color: #111; font-size: 16px; font-weight: 800; letter-spacing: .5px; box-shadow: inset 0 0 0 2px #FFB62F, inset 0 0 0 3px #1a1a1a; }
+.hc-plate em { font-style: normal; }
+.hc-plate.rest { background: #005396; color: #fff; box-shadow: inset 0 0 0 2px #005396, inset 0 0 0 3px #fff; }
+.hc-node small { font-size: 12px; font-weight: 600; color: #fff; background: rgba(28, 29, 32, .92); border-radius: 6px; padding: 0 6px; }
 .hc-rest { font-size: 11px; background: #005396; border-radius: 4px; padding: 0 6px; }
-.hc-hx { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.hc-lx { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 2; display: flex; align-items: center; gap: 6px; }
 .hc-t { font-size: 12.5px; color: rgba(255, 255, 255, .85); white-space: nowrap; }
-.hc-road { position: relative; }
-.hc-road > svg { position: absolute; left: 0; top: 0; }
 .hc-box { position: absolute; z-index: 2; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .hc-box span { font-size: 13.5px; display: flex; align-items: center; gap: 2px; }
 .hc-box span i { font-style: normal; font-size: 9px; opacity: .9; }
 .hc-box b { font-size: 29px; font-weight: 700; line-height: 1.15; }
 .hc-box small { font-size: 12.5px; }
-.hc-you { position: absolute; z-index: 4; transform: translate(-50%, -50%); background: #1a66d6; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 3px rgba(74, 159, 245, .35); }
+.hc-you { background: #1a66d6; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 2px rgba(74, 159, 245, .35); }
 
 /* 兩側：往左接／往右接 */
 .hc-slot { position: absolute; top: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; }
-.hc-turn { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.15; text-align: center; padding: 3px 0; }
-.hc-turn b { font-size: 13.5px; }
-.hc-turn small { font-size: 10.5px; color: rgba(255, 255, 255, .72); }
+.hc-turn { display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.15; text-align: center; padding: 3px 0; }
 .hc-turn .harr { margin-top: 2px; color: #fff; }
 .hc-turn em { font-style: normal; font-size: 10px; font-weight: 700; color: #ffcf7a; }
 
 /* 前方的終點線 */
 .hc-end { position: relative; display: flex; align-items: center; padding: 0 20px; }
 .hc-end > svg { position: absolute; left: 0; top: 0; }
-.hc-end.top { border-bottom: 1px solid #3b3d42; }
-.hc-end.bottom { border-top: 1px solid #3b3d42; }
 .hc-end-l, .hc-end-r { position: relative; z-index: 1; display: flex; gap: 4px; background: #24262A; padding: 0 4px; }
 .hc-end-r { margin-left: auto; }
 .hc-end-c { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); font-size: 12.5px; font-weight: 700; color: #ffcf7a; background: #24262A; border: 1px solid rgba(255, 207, 122, .7); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
 
-.hc-dev { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 12px 9px; }
-.hc-dev span { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; border-radius: 999px; padding: 1px 8px; background: #1b1c1f; border: 1px solid rgba(255, 255, 255, .18); }
-.hc-dev span svg { width: 12px; height: 12px; }
-.hc-dev .cms { color: #FFB000; }
-.hc-dev .ev { border-color: rgba(210, 52, 42, .8); color: #ff9d94; }
+.hc-side { position: absolute; top: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+.hc-side.l { align-items: flex-start; }
+.hc-side.r { align-items: flex-end; text-align: right; }
+.hc-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; line-height: 1.3; border-radius: 8px; padding: 1px 6px; background: #1b1c1f; border: 1px solid rgba(255, 255, 255, .18); }
+.hc-tag svg { width: 12px; height: 12px; flex: none; }
+.hc-tag.cms { color: #FFB000; }
+.hc-tag.ev { border-color: rgba(210, 52, 42, .8); color: #ff9d94; }
 .hc-note { font-size: 12px; color: rgba(255, 255, 255, .5); padding: 0 6px; }
 
-.hc.compact .hc-h { min-height: 32px; padding: 2px 8px 2px 10px; gap: 4px 6px; }
-.hc.compact .hc-n { font-size: 14.5px; }
-.hc.compact .hc-km { font-size: 11px; padding: 0 8px; }
+.hc.compact .hc-node { gap: 1px; line-height: 1.2; }
+.hc.compact .hc-plate { font-size: 13px; padding: 1px 8px; gap: 4px; }
+.hc.compact .hc-node small { font-size: 10.5px; }
 .hc.compact .hc-box span { font-size: 10.5px; }
 .hc.compact .hc-box b { font-size: 20px; }
 .hc.compact .hc-box small { font-size: 9px; }
-.hc.compact .hc-turn b { font-size: 11px; }
+.hc.compact .gsign.v { font-size: 10.5px; padding: 2px 3px; }
+.hc.compact .gsign.v small { font-size: 8.5px; }
+.hc.compact .gsign.m small { font-size: 9px; }
 .hc.compact .hc-end { padding: 0 14px; }
 .hc.compact .hc-end-c { font-size: 10.5px; }
 
@@ -120,6 +126,10 @@ figure.fig figcaption b { color: #1d2330; }
 .gsign.l { font-size: 13.5px; padding: 1px 8px 1px 2px; }
 .gsign.m { font-size: 12.5px; padding: 0 6px 0 2px; }
 .gsign.s { font-size: 11px; padding: 0 5px 0 1px; gap: 2px; }
+.gsign.v { flex-direction: column; gap: 0; padding: 3px 4px 2px; font-size: 13px; text-align: center; }
+.gsign.v small { margin-left: 0; font-size: 10px; }
+.gsign.exit { padding-left: 7px; }
+.gsign.v.exit { padding: 4px 5px 3px; }
 
 /* ===== 主畫面 ===== */
 .ms { flex: 1; display: flex; flex-direction: column; padding: 0 8px; min-height: 0; }
@@ -134,7 +144,10 @@ figure.fig figcaption b { color: #1d2330; }
 .ms-bottom { margin: auto auto 0; width: 150px; height: 58px; flex: none; border-radius: 48px 48px 0 0; background: #3C3C3C; display: flex; align-items: center; justify-content: space-around; padding-bottom: 6px; }
 .ms-bottom svg { width: 28px; height: 28px; opacity: .9; }
 .hmini { display: flex; flex-direction: column; gap: 6px; height: 100%; }
-.hmini .hcl { padding: 0; gap: 6px; }
+.hmini .hcl { padding: 0; gap: 6px; flex: 1; min-height: 0; overflow: hidden; }
+.hmini.up .hcl { justify-content: flex-end; }
+.hcl.fade-top { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px); mask-image: linear-gradient(to bottom, transparent 0, #000 28px); }
+.hcl.fade-bottom { -webkit-mask-image: linear-gradient(to top, transparent 0, #000 28px); mask-image: linear-gradient(to top, transparent 0, #000 28px); }
 .hm-head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, .7); padding: 0 4px; }
 
 /* 小條（有事件時） */
@@ -147,6 +160,7 @@ figure.fig figcaption b { color: #1d2330; }
 .smallbar .trrow { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; color: rgba(255, 255, 255, .8); font-weight: 700; white-space: nowrap; overflow: hidden; }
 .smallbar .trrow .cap { color: rgba(255, 255, 255, .55); font-weight: 600; }
 .smallbar .sside { display: inline-flex; align-items: center; gap: 1px; }
+.smallbar .endtxt { color: #ffcf7a; border: 1px solid rgba(255, 207, 122, .7); border-radius: 999px; padding: 0 7px; }
 .smallbar .rt { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .lvpill { min-width: 44px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; text-align: center; }
 .smallbar .spd { font-size: 10.5px; color: rgba(255, 255, 255, .62); font-weight: 700; }

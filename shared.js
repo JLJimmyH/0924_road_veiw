@@ -42,6 +42,20 @@ const GEO = {
   },
 };
 
+// 轉入目的方向後，還剩幾公里就到該方向終點（目標 section 起點里程到該方向最後一段終點里程）。
+// 剩不到 STUB_KM 的轉接畫成「出口 往 XX」，不寫路線和方向（例如國3甲東向從木柵只剩 0.6 km 就到深坑端）。
+const STUB_KM = 2;
+const REMAIN_KM = {
+  t61: { '八里二': { '100640|E': 28.4 }, '觀音': { '100660|E': 26.7 } },
+  t64: { '八里二': { '100610|N': 4, '100610|S': 301.2 }, '中和': { '000030|N': 35.8, '000030|S': 395.8 } },
+  n3: {
+    '瑪東系統': { '100620|E': 16.2 },
+    '汐止系統': { '000010|N': 12.3, '000010|S': 362.7 },
+    '南港系統': { '000050|S': 54.7 },
+    '木柵': { '000031|E': 0.6, '000031|W': 5.2 },
+  },
+};
+
 // dirA＝里程增加的方向（往下走），dirB＝里程減少的方向（往上走）；
 // endA＝最後一個節點是不是 dirA 真正的終點（情境只截了一段時為 false）
 const SCENARIOS = {
@@ -174,6 +188,11 @@ function destGroups(sc, i) {
 function geoSide(sc, i, road, dir) {
   const g = GEO[sc.key] && GEO[sc.key][sc.nodes[i].name];
   return (g && g[road + '|' + dir]) || 'R';
+}
+function isStub(sc, i, road, dir) {
+  const r = REMAIN_KM[sc.key] && REMAIN_KM[sc.key][sc.nodes[i].name];
+  const km = r ? r[road + '|' + dir] : undefined;
+  return km != null && km <= STUB_KM;
 }
 
 /* ===== 行車狀態 ===== */
