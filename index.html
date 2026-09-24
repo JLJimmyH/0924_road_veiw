@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>國道路況：轉接與終點顯示</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="doc">
+  <h1>國道路況：轉接與終點顯示</h1>
+  <p class="lead">以團隊的橫向車道卡片為基準，卡片、路面、速度框、雙黃線照原設計。這一版只改「可以轉去哪裡」和「路走到底」的顯示方式。路況頁和行車時主畫面跳出來的路況用同一種卡片，只差大小。</p>
+
+  <div class="grid">
+    <div class="box">
+      <h4>怎麼看這張卡</h4>
+      <ul>
+        <li><b>由上往下＝沿著這條路直行</b>：北上／西向往上走（▲），南下／東向往下走（▼）。直行的路畫成速度框後面一條垂直的路。</li>
+        <li><b>左邊＝往左接其他道路，右邊＝往右接</b>：只有真的能接的那一側才延伸出橫向車道，接到路牌；沒得接的那一側不畫路。</li>
+        <li><b>路走到底畫在前方</b>：往上走的畫在最上面那張卡的上緣，往下走的畫在最後一張卡的下緣。能轉的方向寫在終點線兩端，只能轉一邊就只寫一邊。</li>
+        <li><b>沒得轉的卡片兩側不畫東西</b>：原本每張都有的「西向 ←」「東向 →」和兩側延伸的車道都拿掉，只留直行的路。</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>三個情境</h4>
+      <ul>
+        <li><b>台64 八里二</b>：西向走到底，上緣寫「西向到底」，左接 61 南下（往林口）、右接 61 北上（往淡水）。東向從這裡開始，所以只有西向需要轉。</li>
+        <li><b>台61</b>：北上走到淡水端是終點，畫在上緣。八里二右邊接 64 東向（64 從八里二開始，只有東向）。</li>
+        <li><b>國3 汐止系統</b>：左接國1 南下（兩個方向都能轉），右接國1 北上（只有北上能轉，註明「僅北上」）。</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>主畫面</h4>
+      <ul>
+        <li>同一種卡片縮小，只看目前行駛方向：對向變淡、只列這個方向能轉的，並標出目前位置。</li>
+        <li>卡片表頭右邊是到該交流道的距離和時間。</li>
+        <li>有事件時的小條，寫出前方第一個可以轉的地方和左右。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="scn" class="scn"></div>
+  <p class="note">網址後面加 <code>#t61</code>、<code>#n3</code> 可以直接開指定情境。路網和轉接資料取自 <code>origin/jack</code> 的 <code>freeways_all.enc</code>；車速、CCTV、CMS、「往 XX」地名是示意。</p>
+  <div id="stage" class="stage"></div>
+
+  <h2>給工程的規則</h2>
+  <div class="grid">
+    <div class="box">
+      <h4>判斷</h4>
+      <ol>
+        <li><b>走到底</b>：往上走的方向（北上／西向，里程減少）在第一個交流道；往下走的方向在最後一個交流道（要是道路真正的終點）。</li>
+        <li><b>左或右</b>：用路段座標算目的道路在卡片的哪一側：取目前道路「里程增加方向」在交流道附近的方位角，和目標 section 開頭的方位角相減，在里程增加方向的右手邊畫在卡片左邊、左手邊畫在右邊。全路網 261 筆可判定 234 筆；兩路平行的 27 筆預設右邊。可以在打包 <code>freeways_all</code> 時先算好存成 <code>link.side</code>。</li>
+        <li><b>只畫能轉的</b>：<code>link2s</code> 依 <code>roadID + dir</code> 去重（現在依 <code>roadID</code> 去重，會把 61 北上、南下合併成一個）。</li>
+        <li><b>不是每個方向都能轉</b>時，在那塊牌子下註明「僅北上」。</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h4>畫法</h4>
+      <ol>
+        <li>路面：速度框後面一條垂直的路（直行）；能接別條路的那一側，從垂直路延伸一段橫向車道到路牌，接口處路邊線斷開。</li>
+        <li>兩側欄：路線盾牌、方向、往 XX，下面一個朝外的直箭頭（左邊 ←、右邊 →）。整塊可以點，點了跳到那條路，取代原本表頭的「[61] ›」。</li>
+        <li>終點線：在表頭和路面之間（或最後一張卡的表頭下面）畫一條橫線，中間寫「西向到底」或「北上終點」，能轉的路牌放在兩端，箭頭朝外。</li>
+        <li>速度框的方向加上 ▲▼，對應往上走、往下走。</li>
+        <li>主畫面直接重用同一個卡片元件，加上聚焦目前方向、目前位置和距離時間。</li>
+        <li>只用水平、垂直的線。</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script src="hcard.js"></script>
+<script>
+  buildPage({
+    render(sc) {
+      const d = sc.drive;
+      const info = driveInfo(sc, d.dir, d.km, 3);
+      const live = hLiveScreen(sc, renderHCards(sc, { G: hGeom(342), devices: true }));
+      return [
+        { html: live, cap: '<b>路況頁</b>：由上往下沿著道路直行；左右是可以接去的路；走到底畫在前方。' },
+        { html: mainScreen(sc, { mode: 'big', panel: hMainPanel(sc) }), cap: `<b>主畫面（沒有事件時）</b>：${ROADS[sc.road].name} ${dirLabel(d.dir)} 行駛中，同一種卡片縮小，只看目前方向。` },
+        { html: mainScreen(sc, { mode: 'small', small: renderSmallBar(sc, { dir: d.dir, km: d.km, info, chips: hSmallChips(sc, info) }) }), cap: '<b>主畫面（有事件時的小條）</b>：前方第一個可以轉的地方和左右。' },
+      ];
+    },
+  });
+</script>
+</body>
+</html>
