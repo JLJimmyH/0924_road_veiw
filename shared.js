@@ -88,12 +88,14 @@ const SCENARIOS = {
     drive: { dir: 'W', km: 2.4 }, limit: 80, speedNow: 72, endA: true,
   },
   t61: {
-    key: 't61', label: '台61 八里段', sub: '北上走到淡水端是終點；八里二中途可接 64 東向', road: '100610',
+    key: 't61', label: '台61 八里段', sub: '北上走到淡水端是終點；八里二只有北上能接 64 東向', road: '100610',
     dirA: 'S', dirB: 'N', dirCaption: { S: '往林口', N: '往淡水' },
     nodes: [
       { name: '淡水端', km: 0 },
       { name: '八里一', km: 2 },
-      { name: '八里二', km: 4, tr: { S: [['100640', 'E']], N: [['100640', 'E']] } },
+      // 只有北上能接 64（Yuan 確認）。現有路網資料的 61 南下「八里一→八里二」也帶了一筆 64 東向，是錯的，要請後端修正；
+      // trRaw 是現有資料的樣子，只給 v2 頁面重現原版用
+      { name: '八里二', km: 4, tr: { N: [['100640', 'E']] }, trRaw: { S: [['100640', 'E']], N: [['100640', 'E']] } },
       { name: '八里三', km: 6 },
       { name: '林口', km: 14 },
       { name: '蘆竹', km: 19 },
@@ -115,7 +117,7 @@ const SCENARIOS = {
       { lane: 'S', km: 16.0, type: 'cctv' },
       { lane: 'N', km: 20.5, type: 'ev', title: '事故', text: '外側車道' },
     ],
-    drive: { dir: 'S', km: 2.9 }, limit: 90, speedNow: 84, endA: false,
+    drive: { dir: 'N', km: 5 }, limit: 90, speedNow: 84, endA: false,
   },
   n3: {
     key: 'n3', label: '國3 汐止段', sub: '汐止系統：南下、北上能轉的不一樣', road: '000030',
@@ -270,6 +272,9 @@ function buildPage(cfg) {
   const stage = document.getElementById('stage');
   const state = { key: Object.keys(SCENARIOS)[0] };
   if (new URLSearchParams(location.search).has('full')) document.body.classList.add('full'); // 檢查用：整條列表展開
+  if (new URLSearchParams(location.search).has('expand')) document.body.classList.add('expand'); // 檢查用：轉接記號全部展開
+  // 版本切換（v1／v2）帶著目前的情境過去
+  const syncVer = () => document.querySelectorAll('.ver a[data-page]').forEach(a => { a.href = a.dataset.page + location.hash; });
   const hashKey = location.hash.slice(1); // 網址 #t61、#n3 可直接開指定情境
   if (SCENARIOS[hashKey]) state.key = hashKey;
   scn.innerHTML = Object.values(SCENARIOS).map(s => `<button data-k="${s.key}">${s.label}<small>${s.sub}</small></button>`).join('');
@@ -278,6 +283,7 @@ function buildPage(cfg) {
     if (!b) return;
     state.key = b.dataset.k;
     history.replaceState(null, '', '#' + state.key);
+    syncVer();
     draw();
   });
   function draw() {
@@ -285,5 +291,6 @@ function buildPage(cfg) {
     scn.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === state.key));
     stage.innerHTML = cfg.render(sc).map(f => `<figure class="fig"><div class="phone">${f.html}</div><figcaption>${f.cap}</figcaption></figure>`).join('');
   }
+  syncVer();
   draw();
 }

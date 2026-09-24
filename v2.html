@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>國道路況：轉接顯示 v2（從原版改）</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="doc">
+  <nav class="ver"><a class="" data-page="index.html" href="index.html">v1　連續路面＋出口編號牌</a><a class="on" data-page="v2.html" href="v2.html">v2　從原版改</a></nav>
+  <h1>國道路況：轉接顯示 v2（從原版改）<small class="credit">ui/ux design by Yuan&amp;GE&amp;Luka</small></h1>
+  <p class="lead">回到 app 原本的路況頁，只修轉接的顯示。原版膠囊左右的盾牌，意思其實是「左邊車道（南下／東向）能轉、右邊車道（北上／西向）能轉」，這和實際車道位置一致：北上車道在東側、南下在西側，台64 也在台61 的東側。所以版面、色條、膠囊都保留，只改下面三件事。</p>
+
+  <div class="grid">
+    <div class="box">
+      <h4>改了什麼</h4>
+      <ol>
+        <li><b>只顯示真的能轉的方向</b>：台61 八里二只有北上能接 64，所以只剩右邊一個。現有路網資料寫南下也能接，要請後端修正。</li>
+        <li><b>同一條路的不同方向分開</b>：原版依路線合併，台64 八里二只剩一個 61；v2 依「路線＋方向」分開。</li>
+        <li><b>寫出目標方向</b>：盾牌旁邊寫「北上」「東向」。</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h4>三個情境</h4>
+      <ul>
+        <li><b>台61 八里二</b>：原版左右都有 64；v2 只剩右邊「64 東向」（北上車道）。</li>
+        <li><b>台64 八里二</b>：西向走到底。原版右邊只有一個 61；v2 右邊「61 北上」「61 南下」兩個。</li>
+        <li><b>國3 汐止系統</b>：v2 左邊「1 南下」（南下車道只能接國1 南下），右邊「1 北上」「1 南下」（北上車道兩個都能接）。</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>還沒處理</h4>
+      <ul>
+        <li>主畫面（行車時跳出來的路況）。</li>
+        <li>走到底的標示、轉入馬上到底的出口（v1 有做）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="scn" class="scn"></div>
+  <p class="note">網址後面加 <code>#t61</code>、<code>#n3</code> 可以直接開指定情境。路網和轉接資料取自 <code>origin/jack</code> 的 <code>freeways_all.enc</code>；車速、CCTV、CMS、「往 XX」地名是示意。</p>
+  <div id="stage" class="stage"></div>
+</div>
+
+<script src="shared.js"></script>
+<script src="hcard.js"></script>
+<script src="v2.js"></script>
+<script>
+  buildPage({
+    render(sc) {
+      return [
+        { html: olLiveScreen(sc, false), cap: '<b>原版（現在的 app）</b>：照現有資料和原本的邏輯。膠囊左右的盾牌＝左邊（南下／東向）、右邊（北上／西向）車道能轉；依路線合併、不寫方向。' },
+        { html: olLiveScreen(sc, true), cap: '<b>v2</b>：版面照原版，只改轉接：只顯示真的能轉的方向、同一條路的不同方向分開、盾牌旁寫目標方向。' },
+      ];
+    },
+  });
+</script>
+</body>
+</html>

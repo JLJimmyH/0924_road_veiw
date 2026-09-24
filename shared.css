@@ -12,6 +12,10 @@ a { color: #1a66d6; }
 /* ===== 文件區 ===== */
 .doc { max-width: 1320px; margin: 0 auto; padding: 24px 24px 80px; }
 .doc h1 { font-size: 27px; margin: 4px 0 6px; line-height: 1.35; }
+/* 版本切換（v1／v2） */
+.ver { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+.ver a { font-size: 13px; padding: 4px 12px; border-radius: 999px; border: 1px solid #cfd5df; background: #fff; color: #1d2330; text-decoration: none; line-height: 1.4; }
+.ver a.on { background: #1d2330; color: #fff; border-color: #1d2330; }
 .doc h1 .credit { display: table; margin-top: 8px; padding: 3px 14px; border-radius: 999px; background: #1d2330; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .5px; }
 .doc h2 { font-size: 20px; margin: 34px 0 12px; padding-top: 14px; border-top: 1px solid #d8dce3; }
 .doc p { margin: 6px 0; }
@@ -72,62 +76,73 @@ figure.fig figcaption b { color: #1d2330; }
 .hc-row { position: relative; }
 .hc-row > svg { position: absolute; left: 0; top: 0; }
 .hc-node { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; white-space: nowrap; }
-/* 出口編號牌：和高速公路上的一樣黃底黑字、內圈細黑框，里程數字在前（顏色同 app 主畫面的交流道標籤）；休息站藍底白字 */
-.hc-plate { display: flex; align-items: baseline; gap: 6px; padding: 1px 10px; border-radius: 4px; background: #FFB62F; color: #111; font-size: 16px; font-weight: 800; letter-spacing: .5px; box-shadow: inset 0 0 0 2px #FFB62F, inset 0 0 0 3px #1a1a1a; }
-.hc-plate em { font-style: normal; }
-.hc-plate.rest { background: #005396; color: #fff; box-shadow: inset 0 0 0 2px #005396, inset 0 0 0 3px #fff; }
-.hc-node small { font-size: 12px; font-weight: 600; color: #fff; background: rgba(28, 29, 32, .92); border-radius: 6px; padding: 0 6px; }
+/* 出口編號牌：和高速公路上的一樣黃底黑字、里程數字在前（顏色同 app 主畫面的交流道標籤）；休息站藍底白字。
+   數字是主角（15px／700、等寬），站名降一級（13.5px／600）；不加內框，免得每一站都像一張貼紙 */
+.hc-plate { display: flex; align-items: baseline; gap: 5px; padding: 1px 8px; border-radius: 3px; background: #FFB62F; color: #111; font-size: 13.5px; font-weight: 600; letter-spacing: .3px; }
+.hc-plate em { font-style: normal; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hc-plate.rest { background: #005396; color: #fff; }
+.hc-node small { font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, .9); background: rgba(28, 29, 32, .85); border-radius: 5px; padding: 0 5px; }
 .hc-rest { font-size: 11px; background: #005396; border-radius: 4px; padding: 0 6px; }
 .hc-lx { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 2; display: flex; align-items: center; gap: 6px; }
 .hc-t { font-size: 12.5px; color: rgba(255, 255, 255, .85); white-space: nowrap; }
-.hc-box { position: absolute; z-index: 2; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.hc-box span { font-size: 13.5px; display: flex; align-items: center; gap: 2px; }
-.hc-box span i { font-style: normal; font-size: 9px; opacity: .9; }
-.hc-box b { font-size: 29px; font-weight: 700; line-height: 1.15; }
-.hc-box small { font-size: 12.5px; }
-.hc-you { background: #1a66d6; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 2px rgba(74, 159, 245, .35); }
+.hc-box { position: absolute; z-index: 2; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hc-box span { font-size: 11px; font-weight: 500; opacity: .85; line-height: 1.1; }
+.hc-box b { font-size: 23px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hc-you { background: #1a66d6; border-radius: 999px; padding: 1px 7px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
 
 /* 兩側：往左接／往右接 */
 .hc-slot { position: absolute; top: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; }
-.hc-turn { display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.15; text-align: center; padding: 3px 0; }
-.hc-turn .harr { margin-top: 2px; color: #fff; }
-.hc-turn em { font-style: normal; font-size: 10px; font-weight: 700; color: #ffcf7a; }
+.hc-turn { display: flex; flex-direction: column; align-items: center; gap: 4px; line-height: 1.15; text-align: center; padding: 3px 0; }
+/* 方向方塊：兩格固定都顯示（左＝往上走、右＝往下走），能用的亮、不能用的暗 */
+.hc-lanes { display: flex; gap: 2px; }
+.hc-lanes i { font-style: normal; font-size: 10px; font-weight: 600; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: rgba(255, 255, 255, .07); color: rgba(255, 255, 255, .28); }
+.hc-lanes i.on { background: #e9eaec; color: #1C1D20; }
+/* 路況頁收合時的轉接記號（點一下展開） */
+.hc-mark { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; align-items: center; gap: 3px; padding: 2px 4px; border-radius: 999px; background: #1C1D20; border: 1px solid rgba(255, 255, 255, .28); }
+.hc-mark b { font-size: 10.5px; font-weight: 600; padding: 0 3px; }
+.hc-x { cursor: pointer; }
+.hc-x > .hc-xo { display: none; }
+.hc-x.open > .hc-xc, body.expand .hc-x > .hc-xc { display: none; }
+.hc-x.open > .hc-xo, body.expand .hc-x > .hc-xo { display: block; }
 
 /* 前方的終點線 */
 .hc-end { position: relative; display: flex; align-items: center; padding: 0 20px; }
 .hc-end > svg { position: absolute; left: 0; top: 0; }
 .hc-end-l, .hc-end-r { position: relative; z-index: 1; display: flex; gap: 4px; background: #24262A; padding: 0 4px; }
 .hc-end-r { margin-left: auto; }
-.hc-end-c { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); font-size: 12.5px; font-weight: 700; color: #ffcf7a; background: #24262A; border: 1px solid rgba(255, 207, 122, .7); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
+.hc-end-c { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 600; color: #ffcf7a; background: #24262A; padding: 0 6px; white-space: nowrap; }
 
 .hc-side { position: absolute; top: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
-.hc-side.l { align-items: flex-start; }
-.hc-side.r { align-items: flex-end; text-align: right; }
-.hc-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; line-height: 1.3; border-radius: 8px; padding: 1px 6px; background: #1b1c1f; border: 1px solid rgba(255, 255, 255, .18); }
-.hc-tag svg { width: 12px; height: 12px; flex: none; }
-.hc-tag.cms { color: #FFB000; }
-.hc-tag.ev { border-color: rgba(210, 52, 42, .8); color: #ff9d94; }
-.hc-note { font-size: 12px; color: rgba(255, 255, 255, .5); padding: 0 6px; }
+.hc-side.l { align-items: flex-end; text-align: right; } /* 標籤貼近所屬的車道 */
+.hc-side.r { align-items: flex-start; }
+.hc-tag { display: inline-flex; align-items: flex-start; gap: 4px; font-size: 10px; line-height: 1.3; color: rgba(255, 255, 255, .72); max-width: 100%; }
+.hc-tag > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hc-tag svg { width: 13px; height: 13px; flex: none; }
+.hc-tag.cms svg { color: #FFB000; }
+.hc-tag.cam { color: rgba(255, 255, 255, .6); }
+.hc-tag.ev { color: #ff9d94; }
+.hc-tag.ev > i { width: 7px; height: 7px; border-radius: 50%; background: #E0443A; flex: none; margin-top: 4px; }
+.hc-cap { font-size: 11.5px; color: rgba(255, 255, 255, .5); padding: 0 6px; }
 
 .hc.compact .hc-node { gap: 1px; line-height: 1.2; }
-.hc.compact .hc-plate { font-size: 13px; padding: 1px 8px; gap: 4px; }
-.hc.compact .hc-node small { font-size: 10.5px; }
-.hc.compact .hc-box span { font-size: 10.5px; }
-.hc.compact .hc-box b { font-size: 20px; }
-.hc.compact .hc-box small { font-size: 9px; }
-.hc.compact .gsign.v { font-size: 10.5px; padding: 2px 3px; }
+.hc.compact .hc-plate { font-size: 11px; padding: 0 6px; gap: 4px; }
+.hc.compact .hc-plate em { font-size: 12.5px; }
+.hc.compact .hc-node small { font-size: 9.5px; }
+.hc.compact .hc-box span { font-size: 9px; }
+.hc.compact .hc-box b { font-size: 18px; }
+.hc.compact .gsign.v { font-size: 10px; padding: 2px 3px; }
 .hc.compact .gsign.v small { font-size: 8.5px; }
 .hc.compact .gsign.m small { font-size: 9px; }
 .hc.compact .hc-end { padding: 0 14px; }
-.hc.compact .hc-end-c { font-size: 10.5px; }
+.hc.compact .hc-end-c { font-size: 10px; }
 
 /* 綠底路牌 */
-.gsign { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; line-height: 1.15; background: #0B6E3F; color: #fff; font-weight: 700; border: 1.5px solid #fff; box-shadow: 0 0 0 1.5px #0B6E3F; border-radius: 6px; }
-.gsign small { font-weight: 500; font-size: 10.5px; opacity: .92; margin-left: 2px; }
-.gsign.l { font-size: 13.5px; padding: 1px 8px 1px 2px; }
-.gsign.m { font-size: 12.5px; padding: 0 6px 0 2px; }
+.gsign { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; line-height: 1.15; background: #0B6E3F; color: #fff; font-weight: 600; border: 1px solid rgba(255, 255, 255, .85); border-radius: 5px; }
+.gsign small { font-weight: 400; font-size: 10px; opacity: .85; margin-left: 2px; }
+.gsign.l { font-size: 13px; padding: 1px 7px 1px 2px; }
+.gsign.m { font-size: 11.5px; padding: 0 6px 0 2px; }
 .gsign.s { font-size: 11px; padding: 0 5px 0 1px; gap: 2px; }
-.gsign.v { flex-direction: column; gap: 0; padding: 3px 4px 2px; font-size: 13px; text-align: center; }
+.gsign.v { flex-direction: column; gap: 0; padding: 3px 4px 2px; font-size: 12.5px; text-align: center; }
 .gsign.v small { margin-left: 0; font-size: 10px; }
 .gsign.exit { padding-left: 7px; }
 .gsign.v.exit { padding: 4px 5px 3px; }
@@ -155,16 +170,16 @@ figure.fig figcaption b { color: #1d2330; }
 .smallbar { height: 80px; flex: none; margin: 8px 0; border-radius: 18px; background: #24262A; display: flex; align-items: center; padding: 4px 10px; gap: 9px; }
 .smallbar .rd { width: 48px; flex: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, .72); }
 .smallbar .mid { flex: 1; min-width: 0; }
-.smallbar .now { font-size: 11px; color: rgba(255, 255, 255, .58); font-weight: 700; }
-.smallbar .now b { color: #fff; font-size: 16px; font-weight: 900; margin-left: 2px; }
-.smallbar .nx { font-size: 11.5px; color: rgba(255, 255, 255, .7); font-weight: 700; margin-top: 1px; white-space: nowrap; overflow: hidden; }
-.smallbar .trrow { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; color: rgba(255, 255, 255, .8); font-weight: 700; white-space: nowrap; overflow: hidden; }
+.smallbar .now { font-size: 11px; color: rgba(255, 255, 255, .58); font-weight: 500; }
+.smallbar .now b { color: #fff; font-size: 16px; font-weight: 700; margin-left: 2px; }
+.smallbar .nx { font-size: 11.5px; color: rgba(255, 255, 255, .7); font-weight: 500; margin-top: 1px; white-space: nowrap; overflow: hidden; }
+.smallbar .trrow { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; color: rgba(255, 255, 255, .8); font-weight: 600; white-space: nowrap; overflow: hidden; }
 .smallbar .trrow .cap { color: rgba(255, 255, 255, .55); font-weight: 600; }
 .smallbar .sside { display: inline-flex; align-items: center; gap: 1px; }
 .smallbar .endtxt { color: #ffcf7a; border: 1px solid rgba(255, 207, 122, .7); border-radius: 999px; padding: 0 7px; }
 .smallbar .rt { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.lvpill { min-width: 44px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; text-align: center; }
-.smallbar .spd { font-size: 10.5px; color: rgba(255, 255, 255, .62); font-weight: 700; }
+.lvpill { min-width: 44px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; text-align: center; }
+.smallbar .spd { font-size: 10.5px; color: rgba(255, 255, 255, .62); font-weight: 500; }
 
 /* 事件卡（測速照相） */
 .evcard { flex: 1; min-height: 0; border-radius: 20px; background: rgba(210, 52, 42, .12); border: 1px solid rgba(210, 52, 42, .55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-bottom: 64px; }
@@ -177,3 +192,40 @@ figure.fig figcaption b { color: #1d2330; }
 /* 檢查用：?full 把手機高度展開，整條列表一次看完 */
 body.full .phone, body.full .screen { height: auto; }
 body.full .content { overflow: visible; }
+
+/* ===== v2 頁面：app 原版路況頁的樣式（依 RoadLiveListModeWidfet 等比縮到 360 寬） ===== */
+.screen.ol { background: #2C2C2C; color: #e1e1e1; }
+.ol-appbar { height: 56px; flex: none; display: flex; align-items: center; gap: 18px; padding: 0 16px; font-size: 20px; background: #3D3D3D; }
+.ol-appbar .t { flex: 1; letter-spacing: 1px; }
+.ol-appbar svg { width: 24px; height: 24px; }
+.ol-tabs { margin-top: 10px; border-color: #555; }
+.ol-tabs span { border-right-color: #555; }
+.ol-roadbar { margin: 12px 12px 0; flex: none; display: flex; align-items: center; height: 56px; padding: 0 16px 0 20px; border: 1px solid #505050; border-radius: 999px; background: #383838; }
+.ol-roadbar .n { flex: 1; text-align: center; font-size: 17px; }
+.ol-roadbar svg { width: 22px; height: 22px; }
+.ol-list { padding: 12px 5px 96px; }
+.ol-pair { padding: 5px 0; }
+.ol-pill { display: flex; align-items: center; min-height: 44px; padding: 6px 14px; border-radius: 22px; background: #383838; border: 1px solid rgba(255, 255, 255, .22); }
+.ol-side { width: 56px; flex: none; display: flex; flex-direction: column; gap: 3px; }
+.ol-side.l { align-items: flex-start; }
+.ol-side.r { align-items: flex-end; }
+.ol-link { display: inline-flex; align-items: center; gap: 2px; font-size: 18px; line-height: 1; white-space: nowrap; }
+.ol-c { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14.5px; }
+.ol-km { font-size: 12px; padding: 1px 9px; border-radius: 999px; background: #424242; border: 1px solid #6f6f6f; }
+/* v2：盾牌旁寫目標方向，左右欄加寬 */
+.ol-pill.v2 { padding: 6px 12px; }
+.ol-pill.v2 .ol-side { width: 66px; }
+.ol-pill.v2 .ol-link small { font-size: 11.5px; font-weight: 600; margin-left: 1px; }
+.ol-row { display: flex; align-items: stretch; gap: 7px; margin: 7px 0; }
+.ol-devs { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-evenly; gap: 6px; }
+.ol-devs.l { align-items: flex-start; }
+.ol-devs.r { align-items: flex-end; }
+.ol-dev { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; border-radius: 8px; padding: 2px 7px; background: #1f1f1f; border: 1px solid rgba(255, 255, 255, .2); max-width: 100%; }
+.ol-dev svg { width: 12px; height: 12px; flex: none; }
+.ol-dev.cms { color: #FFB000; }
+.ol-dev.ev { color: #ff9d94; border-color: rgba(210, 52, 42, .8); }
+.ol-strips { width: 87px; flex: none; display: flex; gap: 2px; }
+.ol-strip { flex: 1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+.ol-strip b { font-size: 15px; }
+.ol-strip strong { font-size: 23px; font-weight: 800; margin-top: 5px; line-height: 1.2; }
+.ol-strip small { font-size: 10.5px; }

@@ -13,8 +13,12 @@ const HICON = {
   road: '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M12 6v3M12 11v3M12 16v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor"/></svg>',
   map: '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>',
+  cms: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="11" rx="1.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M7 8.5h10M7 11.5h6M12 15v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   rest: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="14" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/></svg>',
 };
+
+// 順暢（綠）的速度框用沉一點的綠：大部分路段都是順暢，塗滿亮綠只會變成一片噪音
+const CALM_GREEN = '#2B6B4D';
 
 function hLiveScreen(sc, body) {
   return `<div class="screen dk">
@@ -33,23 +37,23 @@ function hGeom(W, compact) {
   return {
     W, compact,
     // 主畫面（compact）的路段列與站名列壓扁一點，3 個交流道含轉向列才放得進大 panel
-    roadH: compact ? r(76) + 8 : 92, bandH: r(62), boxW: r(48), boxH: r(76), gap: r(13),
-    side: r(58), slotH: r(78), endH: r(44), labelH: compact ? 36 : 38,
+    roadH: compact ? r(54) + 8 : 84, bandH: r(50), boxW: r(42), boxH: r(54), gap: r(13),
+    side: r(58), slotH: r(66), endH: r(44), labelH: compact ? 36 : 38,
+    stubW: r(16), stubH: r(18),
   };
 }
-// 綠底路牌（兩側、終點線、小條共用同一種，只差尺寸與排列）：盾牌＋方向＋往 XX
-// l＝橫排、m＝橫排小、v＝直排（兩側欄）、s＝小條（空間不夠，省略往 XX）
-// t.stub（轉入後馬上到底）：改寫「出口 往 XX」，不寫路線和方向
-function hSign(t, size = 'l', compact = false) {
+// 綠底路牌（兩側、終點線、小條共用同一種，只差尺寸與排列）：盾牌＋目標方向
+// l＝橫排、m＝橫排小、v＝直排（兩側欄）、s＝小條。往 XX 只放在點開的細節裡（toward）
+// t.stub（轉入後馬上到底）：一律寫「出口 往 XX」，不寫路線和方向
+function hSign(t, size = 'l', compact = false, toward = false) {
   const tw = `<small>往${towardOf(t.road, t.dir)}</small>`;
   if (t.stub) return `<span class="gsign ${size} exit"><span>出口</span>${tw}</span>`;
-  const sz = { l: 20, m: 17, v: compact ? 16 : 20, s: 15 }[size];
-  return `<span class="gsign ${size}">${shield(t.road, sz)}<span>${dirLabel(t.dir)}</span>${size === 's' ? '' : tw}</span>`;
+  const sz = { l: 18, m: 16, v: compact ? 15 : 18, s: 15 }[size];
+  return `<span class="gsign ${size}">${shield(t.road, sz)}<span>${dirLabel(t.dir)}</span>${toward ? tw : ''}</span>`;
 }
-function hArrow(toLeft, w, h = 10) {
-  const m = h / 2;
-  const d = toLeft ? `M ${w - 1} ${m} H 3 M 8 ${m - 4} L 2 ${m} L 8 ${m + 4}` : `M 1 ${m} H ${w - 3} M ${w - 8} ${m - 4} L ${w - 2} ${m} L ${w - 8} ${m + 4}`;
-  return `<svg class="harr" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+// 哪些行駛方向能用這個轉接：兩格固定都顯示（順序同速度框：左＝往上走、右＝往下走），不能用的變暗
+function hLaneChips(sc, t) {
+  return `<span class="hc-lanes">${[sc.dirB, sc.dirA].map(l => `<i class="${t.lanes.includes(l) ? 'on' : ''}">${dirLabel(l)[0]}</i>`).join('')}</span>`;
 }
 
 /* ===== 轉向資料 ===== */
@@ -70,11 +74,11 @@ function hTurns(sc, i, focus) {
 }
 
 /* ===== 元件 ===== */
-// 兩側：往左接／往右接
-function hSlot(sc, G, side, items, H) {
+// 兩側：往左接／往右接。橫向車道已經表示往哪一側，路牌下不再畫箭頭。
+// detail（路況頁點開的細節）：多寫往 XX，並用方向方塊標出哪些行駛方向能用；主畫面只看目前方向，不需要
+function hSlot(sc, G, side, items, H, detail) {
   const left = side === 'L';
-  const body = items.map(t => `<div class="hc-turn">${hSign(t, 'v', G.compact)}
-      ${hArrow(left, G.compact ? 24 : 32)}${t.only ? `<em>僅${t.only.map(dirLabel).join('、')}</em>` : ''}</div>`).join('');
+  const body = items.map(t => `<div class="hc-turn">${hSign(t, 'v', G.compact, detail)}${detail ? hLaneChips(sc, t) : ''}</div>`).join('');
   return `<div class="hc-slot" style="${left ? 'left' : 'right'}:0;width:${G.side}px;height:${H}px">${body}</div>`;
 }
 // 直行的路的左右邊界（速度框外面留一點路肩）
@@ -108,13 +112,14 @@ function hEndBar(sc, G, lane, turns, pos, road) {
   if (hasL || hasR) {
     label = `${dirLabel(lane)}到底`;
     // 只能轉一邊時，封閉端的擋線畫在中間標籤外面、而且至少到路邊，才看得出那一邊不能轉
-    const half = (label.length * (G.compact ? 10.5 : 12.5) + 22) / 2 + 12;
+    const half = (label.length * (G.compact ? 10 : 12) + 12) / 2 + 10;
     const x0 = hasL ? 4 : Math.min(cx - half, vx0), x1 = hasR ? W - 4 : Math.max(cx + half, vx1);
-    svg = `<path d="M ${x0} ${y} H ${x1}" stroke="#fff" stroke-width="3"/>`;
-    svg += hasL ? `<path d="M ${x0 + 9} ${y - 6} L ${x0} ${y} L ${x0 + 9} ${y + 6}" stroke="#fff" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>` : `<path d="M ${x0} ${y - 8} V ${y + 8}" stroke="#fff" stroke-width="3"/>`;
-    svg += hasR ? `<path d="M ${x1 - 9} ${y - 6} L ${x1} ${y} L ${x1 - 9} ${y + 6}" stroke="#fff" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>` : `<path d="M ${x1} ${y - 8} V ${y + 8}" stroke="#fff" stroke-width="3"/>`;
+    // 線寬和路邊線一致（2.2），不要比路還搶眼
+    svg = `<path d="M ${x0} ${y} H ${x1}" stroke="#fff" stroke-width="2.2"/>`;
+    svg += hasL ? `<path d="M ${x0 + 8} ${y - 5} L ${x0} ${y} L ${x0 + 8} ${y + 5}" stroke="#fff" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>` : `<path d="M ${x0} ${y - 7} V ${y + 7}" stroke="#fff" stroke-width="2.2"/>`;
+    svg += hasR ? `<path d="M ${x1 - 8} ${y - 5} L ${x1} ${y} L ${x1 - 8} ${y + 5}" stroke="#fff" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>` : `<path d="M ${x1} ${y - 7} V ${y + 7}" stroke="#fff" stroke-width="2.2"/>`;
   } else {
-    svg = `<path d="M ${cx - 70} ${y} H ${cx + 70} M ${cx - 70} ${y - 8} V ${y + 8} M ${cx + 70} ${y - 8} V ${y + 8}" stroke="#fff" stroke-width="3.5"/>`;
+    svg = `<path d="M ${cx - 70} ${y} H ${cx + 70} M ${cx - 70} ${y - 8} V ${y + 8} M ${cx + 70} ${y - 8} V ${y + 8}" stroke="#fff" stroke-width="2.5"/>`;
     label = `${dirLabel(lane)}終點`;
   }
   // 直行的路接到終點線為止（上緣往下、下緣往上），和相鄰的列連成一條
@@ -150,10 +155,8 @@ function hStation(sc, i, o) {
   const side = endLanes.length ? { L: [], R: [] } : turns;
   const nL = side.L.length, nR = side.R.length;
 
-  const H = nL || nR ? Math.max(G.bandH + (G.compact ? 12 : 16), Math.max(nL, nR) * G.slotH) : G.labelH;
   // 道路真正的起點／終點（沒畫終點線時）路停在站名中間
-  const y0 = i === 0 && !topEnd ? H / 2 : 0;
-  const y1 = i === last && sc.endA && !bottomEnd ? H / 2 : H;
+  const ys = H => ({ y0: i === 0 && !topEnd ? H / 2 : 0, y1: i === last && sc.endA && !bottomEnd ? H / 2 : H });
   // 站名做成高速公路的出口編號牌：黃底黑字「10 汐止系統」，里程數字在前；休息站藍底白字。
   // 大家看幾 K 判斷距離，數字一定要顯示、而且要醒目。主畫面前方的站，牌子下方多一行「到這裡的距離・時間」
   const hx = o.header ? o.header(i) : '';
@@ -162,18 +165,40 @@ function hStation(sc, i, o) {
   // 休息站：站名已經寫了、或是主畫面，就不再加標籤
   if (nd.type === 'rest' && !G.compact && !nR && !nd.name.includes('休息站')) html += '<div class="hc-lx"><span class="hc-rest">休息站</span></div>';
 
-  let extra = '', gapL = null, gapR = null;
-  if (nL || nR) {
-    const bt = (H - G.bandH) / 2, bb = bt + G.bandH, q = G.bandH / 4;
-    const ext = (x0, x1) => `<rect x="${x0}" y="${bt}" width="${x1 - x0}" height="${G.bandH}" fill="#4d5055"/>` +
-      `<path d="M ${x0} ${bt + 1} H ${x1} M ${x0} ${bt + 2 * q} H ${x1} M ${x0} ${bb - 1} H ${x1}" stroke="#b8bbc0" stroke-width="2.2"/>` +
-      `<path d="M ${x0} ${bt + q} H ${x1} M ${x0} ${bt + 3 * q} H ${x1}" stroke="#e6e7e9" stroke-width="1.8" stroke-dasharray="${G.compact ? '7 6' : '10 8'}"/>`;
-    extra = (nL ? ext(G.side, vx0) : '') + (nR ? ext(vx1, W - G.side) : '');
-    gapL = nL ? [bt, bb] : null;
-    gapR = nR ? [bt, bb] : null;
-    html += (nL ? hSlot(sc, G, 'L', side.L, H) : '') + (nR ? hSlot(sc, G, 'R', side.R, H) : '');
+  // 橫向車道：灰底＋兩條路邊線（夠寬才加一條虛線），比主線簡單，不搶眼
+  const ramp = (x0, x1, t, h) => `<rect x="${x0}" y="${t}" width="${x1 - x0}" height="${h}" fill="#4d5055"/>` +
+    `<path d="M ${x0} ${t + 1} H ${x1} M ${x0} ${t + h - 1} H ${x1}" stroke="#b8bbc0" stroke-width="2"/>` +
+    (h > 24 ? `<path d="M ${x0} ${t + h / 2} H ${x1}" stroke="#e6e7e9" stroke-width="1.6" stroke-dasharray="${G.compact ? '6 5' : '8 7'}"/>` : '');
+  // 完整的轉向列：橫向車道從路口接到兩側路牌
+  const full = (H, detail) => {
+    const bt = (H - G.bandH) / 2, bb = bt + G.bandH;
+    const extra = (nL ? ramp(G.side, vx0, bt, G.bandH) : '') + (nR ? ramp(vx1, W - G.side, bt, G.bandH) : '');
+    const slots = (nL ? hSlot(sc, G, 'L', side.L, H, detail) : '') + (nR ? hSlot(sc, G, 'R', side.R, H, detail) : '');
+    return hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H), gapL: nL ? [bt, bb] : null, gapR: nR ? [bt, bb] : null, extra }), html + slots);
+  };
+  // 路況頁收合時：路邊接出一小段車道，後面接一個可以點的小記號（只放盾牌；出口寫「出口」），看得出往哪一側能轉
+  const mini = H => {
+    const t = (H - G.stubH) / 2;
+    const extra = (nL ? ramp(vx0 - G.stubW, vx0, t, G.stubH) : '') + (nR ? ramp(vx1, vx1 + G.stubW, t, G.stubH) : '');
+    const uniq = arr => arr.filter((x, k) => arr.findIndex(y => (y.stub ? 'stub' : y.road) === (x.stub ? 'stub' : x.road)) === k);
+    const mark = (arr, left) => `<span class="hc-mark" style="${left ? `right:${W - vx0 + G.stubW}px` : `left:${vx1 + G.stubW}px`}">${uniq(arr).map(x => (x.stub ? '<b>出口</b>' : shield(x.road, 18))).join('')}</span>`;
+    return hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H), gapL: nL ? [t, t + G.stubH] : null, gapR: nR ? [t, t + G.stubH] : null, extra }),
+      html + (nL ? mark(side.L, true) : '') + (nR ? mark(side.R, false) : ''));
+  };
+
+  let row, H;
+  if (!nL && !nR) {
+    H = G.labelH;
+    row = hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H) }), html);
+  } else if (o.collapse) {
+    // 路況頁：預設只標「這裡可轉」，點一下展開成完整的轉向列（寫往 XX、標出哪些方向能用），再點收回
+    H = G.labelH;
+    const HF = Math.max(G.bandH + 16, Math.max(nL, nR) * (G.slotH + 14));
+    row = `<div class="hc-x" onclick="this.classList.toggle('open')"><div class="hc-xc">${mini(H)}</div><div class="hc-xo">${full(HF, true)}</div></div>`;
+  } else {
+    H = Math.max(G.bandH + (G.compact ? 12 : 16), Math.max(nL, nR) * G.slotH);
+    row = full(H, false);
   }
-  const row = hRow(G, H, hRoadSvg(G, H, { ...road, y0, y1, gapL, gapR, extra }), html);
   return { topEnd, row, bottomEnd, H };
 }
 
@@ -192,7 +217,7 @@ function hCard(sc, i, o) {
   const colL = vx0 - 10, colR = W - vx1 - 10;
   const L = o.devices ? hDevTags(sc, i, laneUp, colL) : [], R = o.devices ? hDevTags(sc, i, laneDown, colR) : [];
   if (o.you && o.you.seg === i) {
-    (o.you.dir === laneUp ? L : R).push({ html: `<span class="hc-you">${o.you.dir === laneUp ? '▲' : '▼'} 目前 ${o.you.km.toFixed(1)}K</span>`, h: 20 });
+    (o.you.dir === laneUp ? L : R).push({ html: `<span class="hc-you">目前 ${o.you.km.toFixed(1)}K</span>`, h: 20 });
   }
   const colH = arr => arr.reduce((s, t) => s + t.h, 0) + Math.max(0, arr.length - 1) * 5;
   // a、b：速度框上方／下方那一站，編號牌到列邊的空白（有轉向的站比較高）
@@ -201,23 +226,26 @@ function hCard(sc, i, o) {
   const H = Math.round(Math.max(G.boxH + 16 + Math.abs(a - b), G.roadH, colH(L) + 8, colH(R) + 8));
   const top = Math.round((H - G.boxH + b - a) / 2);
   const op = lane => (o.focus && o.focus !== lane ? 0.28 : 1);
-  const box = (lane, x, mark) => {
-    const v = sc.segs[i][lane];
-    return `<div class="hc-box" style="left:${x}px;top:${top}px;width:${G.boxW}px;height:${G.boxH}px;background:${LV_COLOR[lvl(v)]};opacity:${op(lane)}"><span>${dirLabel(lane)}<i>${mark}</i></span><b>${v}</b><small>km/h</small></div>`;
+  // 速度框只留方向單字＋車速（km/h 在列表上方寫一次）；順暢用沉一點的綠，塞車的黃／橘／紅才跳出來
+  const box = (lane, x) => {
+    const v = sc.segs[i][lane], lv = lvl(v);
+    return `<div class="hc-box" style="left:${x}px;top:${top}px;width:${G.boxW}px;height:${G.boxH}px;background:${lv === 1 ? CALM_GREEN : LV_COLOR[lv]};opacity:${op(lane)}"><span>${dirLabel(lane)[0]}</span><b>${v}</b></div>`;
   };
   const col = (arr, left) => (arr.length ? `<div class="hc-side ${left ? 'l' : 'r'}" style="${left ? `left:4px;width:${colL}px` : `left:${vx1 + 6}px;width:${colR}px`};height:${H}px">${arr.map(t => t.html).join('')}</div>` : '');
   const seg = hRow(G, H, hRoadSvg(G, H, road),
-    box(laneUp, cx - G.gap - G.boxW, '▲') + box(laneDown, cx + G.gap, '▼') + col(L, true) + col(R, false));
+    box(laneUp, cx - G.gap - G.boxW) + box(laneDown, cx + G.gap) + col(L, true) + col(R, false));
   return `<div class="${cls}">${st.topEnd}${st.row}${seg}</div>`;
 }
 
-// 路段裡的 CCTV／CMS／事件：放在所屬方向那一側，所以不用再寫方向。h＝依字數估的高度（窄欄會換行）
+// 路段裡的 CCTV／CMS／事件：放在所屬方向那一側，所以不用再寫方向；不加框。
+// CCTV 只放攝影機圖示（點開看畫面）；CMS 用看板圖示＋訊息；事件用紅點＋文字。文字最多兩行，h＝估的高度
 function hDevTags(sc, i, lane, colW) {
-  const textW = s => [...s].reduce((w, c) => w + (c.charCodeAt(0) > 0x2e80 ? 10.5 : 6), 0);
+  const textW = s => [...s].reduce((w, c) => w + (c.charCodeAt(0) > 0x2e80 ? 10 : 5.5), 0);
   return devicesIn(sc, i, lane).map(d => {
-    const [cls, text, icon] = d.type === 'cctv' ? ['', `CCTV ${d.km}K`, ICON.cam] : d.type === 'cms' ? ['cms', `CMS ${d.text}`, ''] : ['ev', `${d.title} ${d.text}`, ''];
-    const lines = Math.max(1, Math.ceil((textW(text) + (icon ? 15 : 0) + 14) / colW));
-    return { html: `<span class="hc-tag ${cls}">${icon}${text}</span>`, h: lines * 14 + 5 };
+    if (d.type === 'cctv') return { html: `<span class="hc-tag cam">${ICON.cam}</span>`, h: 16 };
+    const [cls, text, icon] = d.type === 'cms' ? ['cms', d.text, HICON.cms] : ['ev', `${d.title} ${d.text}`, '<i></i>'];
+    const lines = Math.min(2, Math.max(1, Math.ceil((textW(text) + 16) / colW)));
+    return { html: `<span class="hc-tag ${cls}">${icon}<span>${text}</span></span>`, h: lines * 13 + 4 };
   });
 }
 
@@ -231,11 +259,11 @@ function renderHCards(sc, o) {
   const road = hRow(G, 240, hRoadSvg(G, 240, hRoadOp(sc, o.focus || null)));
   if (o.extendTop) cards.unshift(road);
   if (o.extendBottom) cards.push(road);
-  const note = o.note === false ? '' : '<div class="hc-note">註：速度為即時平均速率，單位 km/h</div>';
+  const cap = o.note === false ? '' : '<div class="hc-cap">車速為兩站之間的平均 km/h・點轉接記號看細節</div>';
   // 整串交流道包在一個區塊裡，區塊裡面不畫分隔線、不留間距
   // 路延伸出去的那一端淡出，和真正的終點線分得開
   const fade = (o.extendTop ? ' fade-top' : '') + (o.extendBottom ? ' fade-bottom' : '');
-  return `<div class="hcl${fade}"><div class="hcs">${cards.join('')}</div>${note}</div>`;
+  return `<div class="hcl${fade}">${cap}<div class="hcs">${cards.join('')}</div></div>`;
 }
 
 // 主畫面：同一種畫法縮小，顯示目前位置附近，只看目前方向（對向變淡）
@@ -275,5 +303,8 @@ function hSmallChips(sc, info) {
   if (!trAt(sc, a.i, lane).length) return `<span class="cap">${a.node.name}</span><span class="endtxt">${dirLabel(lane)}終點</span>`;
   const t = hTurns(sc, a.i, lane);
   const chip = (arr, left) => arr.map(g => `<span class="sside">${left ? '←' : ''}${hSign(g, 's')}${left ? '' : '→'}</span>`).join('');
-  return `<span class="cap">${a.node.name}${hIsEnd(sc, a.i, lane) ? '到底' : ''}</span>${chip(t.L, true)}${chip(t.R, false)}`;
+  // 要轉的交流道就是上一行寫的下一站時，不再重寫站名
+  const name = a.i === info.ahead[0].i ? '' : a.node.name;
+  const cap = `${name}${hIsEnd(sc, a.i, lane) ? '到底' : ''}`;
+  return `${cap ? `<span class="cap">${cap}</span>` : ''}${chip(t.L, true)}${chip(t.R, false)}`;
 }
