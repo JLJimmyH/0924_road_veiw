@@ -76,10 +76,8 @@ figure.fig figcaption b { color: #1d2330; }
 .hc-row { position: relative; }
 .hc-row > svg { position: absolute; left: 0; top: 0; }
 .hc-node { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; white-space: nowrap; }
-/* 出口編號牌：和高速公路上的一樣黃底黑字、里程數字在前（顏色同 app 主畫面的交流道標籤）；休息站藍底白字。
-   數字是主角（15px／700、等寬），站名降一級（13.5px／600）；不加內框，免得每一站都像一張貼紙 */
-.hc-plate { display: flex; align-items: baseline; gap: 5px; padding: 1px 8px; border-radius: 3px; background: #FFB62F; color: #111; font-size: 13.5px; font-weight: 600; letter-spacing: .3px; }
-.hc-plate em { font-style: normal; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* 出口編號牌：黃底黑字（顏色同 app 主畫面的交流道標籤），只寫里程數字；休息站藍底白字。站名不放在路上，改放右邊的站名欄 */
+.hc-plate { display: flex; justify-content: center; min-width: 26px; padding: 1px 6px; border-radius: 3px; background: #FFB62F; color: #111; font-size: 15px; font-weight: 700; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .hc-plate.rest { background: #005396; color: #fff; }
 .hc-node small { font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, .9); background: rgba(28, 29, 32, .85); border-radius: 5px; padding: 0 5px; }
 .hc-rest { font-size: 11px; background: #005396; border-radius: 4px; padding: 0 6px; }
@@ -97,8 +95,22 @@ figure.fig figcaption b { color: #1d2330; }
 .hc-lanes { display: flex; gap: 2px; }
 .hc-lanes i { font-style: normal; font-size: 10px; font-weight: 600; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: rgba(255, 255, 255, .07); color: rgba(255, 255, 255, .28); }
 .hc-lanes i.on { background: #e9eaec; color: #1C1D20; }
-/* 路況頁收合時的轉接記號（點一下展開） */
-.hc-mark { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; align-items: center; gap: 3px; padding: 2px 4px; border-radius: 999px; background: #1C1D20; border: 1px solid rgba(255, 255, 255, .28); }
+/* 站名欄：路右邊固定的一欄，每站對齊；下面一行是出口接的一般道路（路況頁）或距離・時間（主畫面） */
+.hc-name { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; display: flex; flex-direction: column; gap: 2px; line-height: 1.2; white-space: nowrap; overflow: hidden; }
+.hc-name b { font-size: 12.5px; font-weight: 500; color: rgba(255, 255, 255, .85); overflow: hidden; text-overflow: ellipsis; }
+.hc-name small { font-size: 10px; color: rgba(255, 255, 255, .62); }
+.hc-name .ex { display: flex; flex-wrap: wrap; gap: 3px; white-space: normal; }
+.hc-name .ex i { font-style: normal; font-size: 9.5px; line-height: 13px; padding: 0 4px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .35); color: rgba(255, 255, 255, .75); }
+.hc-node .ex.wrap { flex-wrap: wrap; white-space: normal; }
+.hc-node .ex { display: flex; gap: 3px; justify-content: center; max-width: 110px; }
+.hc-node .ex i { font-style: normal; font-size: 9.5px; line-height: 13px; padding: 0 4px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .35); color: rgba(255, 255, 255, .8); background: rgba(28, 29, 32, .85); }
+.hc.compact .hc-name b { font-size: 10.5px; }
+.hc.compact .hc-name small { font-size: 9px; }
+/* 路況頁收合時的轉接記號（點一下展開）：盾牌直排往下疊 */
+.hc-mark { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px; border-radius: 10px; background: #1C1D20; border: 1px solid rgba(255, 255, 255, .28); }
+/* 主畫面路邊的小路牌（盾牌＋目標方向），多個往下疊 */
+.hc-near { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; flex-direction: column; gap: 2px; }
+.hc-near .gsign.s { font-size: 10px; padding: 0 4px 0 1px; }
 .hc-mark b { font-size: 10.5px; font-weight: 600; padding: 0 3px; }
 .hc-x { cursor: pointer; }
 .hc-x > .hc-xo { display: none; }
@@ -125,8 +137,7 @@ figure.fig figcaption b { color: #1d2330; }
 .hc-cap { font-size: 11.5px; color: rgba(255, 255, 255, .5); padding: 0 6px; }
 
 .hc.compact .hc-node { gap: 1px; line-height: 1.2; }
-.hc.compact .hc-plate { font-size: 11px; padding: 0 6px; gap: 4px; }
-.hc.compact .hc-plate em { font-size: 12.5px; }
+.hc.compact .hc-plate { font-size: 12px; min-width: 20px; padding: 0 4px; }
 .hc.compact .hc-node small { font-size: 9.5px; }
 .hc.compact .hc-box span { font-size: 9px; }
 .hc.compact .hc-box b { font-size: 18px; }

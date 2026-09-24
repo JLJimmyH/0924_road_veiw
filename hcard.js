@@ -38,8 +38,9 @@ function hGeom(W, compact) {
     W, compact,
     // 主畫面（compact）的路段列與站名列壓扁一點，3 個交流道含轉向列才放得進大 panel
     roadH: compact ? r(54) + 8 : 84, bandH: r(50), boxW: r(42), boxH: r(54), gap: r(13),
-    side: r(58), slotH: r(66), endH: r(44), labelH: compact ? 36 : 38,
-    stubW: r(16), stubH: r(18),
+    side: r(58), slotH: r(66), endH: r(44), labelH: compact ? 32 : 38,
+    // 路邊一小段車道（轉接記號接在後面）；nameGap＝站名欄離路邊多遠（要讓出記號的寬度）
+    stubW: compact ? 7 : 10, stubH: compact ? 12 : 16, nameGap: compact ? 44 : 40,
   };
 }
 // 綠底路牌（兩側、終點線、小條共用同一種，只差尺寸與排列）：盾牌＋目標方向
@@ -134,11 +135,13 @@ function hRoadOp(sc, focus) {
   const op = lane => (focus && focus !== lane ? 0.28 : 1);
   return { opUp: op(sc.dirB), opDown: op(sc.dirA) };
 }
-// 編號牌（含主畫面的距離時間）的半高：路段列要用它算速度框放在兩塊牌子正中間
-const hPillHalf = G => (G.compact ? 16 : 13);
+// 編號牌的半高：路段列要用它算速度框放在兩塊牌子正中間
+const hPillHalf = G => (G.compact ? 9 : 12);
 
-// 交流道 i 這一站：（前方的）終點線＋站名列。能接其他道路的站，編號牌直接放在路口正中央，
-// 橫向車道從同一個高度往兩側接出去；沒得接的站只有一列細細的站名。
+// 交流道 i 這一站：（前方的）終點線＋站名列。
+// 路上只放出口編號牌（只寫里程數字）；站名放在路右邊固定的一欄，像捷運路線圖的站名，路面保持乾淨。
+// 站名下面：路況頁列出口接的一般道路（全部直接列出，放不下就換行）；主畫面寫到這裡的距離・時間。
+// 能接其他道路的站：路況頁只在路邊接一小段車道＋盾牌記號，點開才看完整路牌；主畫面直接在路邊放小路牌（盾牌＋目標方向）。
 function hStation(sc, i, o) {
   const G = o.G, W = G.W, nd = sc.nodes[i], last = sc.nodes.length - 1;
   const laneUp = sc.dirB, laneDown = sc.dirA;
@@ -157,47 +160,71 @@ function hStation(sc, i, o) {
 
   // 道路真正的起點／終點（沒畫終點線時）路停在站名中間
   const ys = H => ({ y0: i === 0 && !topEnd ? H / 2 : 0, y1: i === last && sc.endA && !bottomEnd ? H / 2 : H });
-  // 站名做成高速公路的出口編號牌：黃底黑字「10 汐止系統」，里程數字在前；休息站藍底白字。
-  // 大家看幾 K 判斷距離，數字一定要顯示、而且要醒目。主畫面前方的站，牌子下方多一行「到這裡的距離・時間」
+  // 出口編號牌：黃底黑字，只寫里程數字（大家看幾 K 判斷距離）；休息站藍底白字。cap＝牌子下面的小字
+  const node = (cap = '') => `<div class="hc-node"><span class="hc-plate${nd.type === 'rest' ? ' rest' : ''}">${nd.km}</span>${cap}</div>`;
+  // 站名欄：每一站都對齊在同一條線上，比較好往下掃讀
+  const nameX = vx1 + G.nameGap;
   const hx = o.header ? o.header(i) : '';
-  const plate = `<span class="hc-plate${nd.type === 'rest' ? ' rest' : ''}"><em>${nd.km}</em>${nd.name}</span>`;
-  let html = `<div class="hc-node">${plate}${hx ? `<small>${hx}</small>` : ''}</div>`;
-  // 休息站：站名已經寫了、或是主畫面，就不再加標籤
-  if (nd.type === 'rest' && !G.compact && !nR && !nd.name.includes('休息站')) html += '<div class="hc-lx"><span class="hc-rest">休息站</span></div>';
+  const exits = nd.exits || [];
+  const colW = W - nameX - 2;
+  const sub = G.compact
+    ? (hx ? `<small>${hx}</small>` : '')
+    : (exits.length ? `<span class="ex">${exits.map(r => `<i>${r}</i>`).join('')}</span>` : '');
+  const name = `<div class="hc-name" style="left:${nameX}px;width:${colW}px"><b>${nd.name}</b>${sub}</div>`;
+  // 出口道路標籤全部直接列出，站名欄放不下就換行：估算要幾行，站名列跟著加高
+  const exLines = () => {
+    if (G.compact || !exits.length) return 0;
+    const bw = r => [...r].reduce((a, c) => a + (c.charCodeAt(0) > 0x2e80 ? 9.5 : 5.5), 0) + 10;
+    let lines = 1, x = 0;
+    for (const r of exits) {
+      if (x && x + bw(r) > colW) { lines++; x = 0; }
+      x += bw(r) + 3;
+    }
+    return lines;
+  };
+  const nameH = 16 + exLines() * 16 + 6;
 
   // 橫向車道：灰底＋兩條路邊線（夠寬才加一條虛線），比主線簡單，不搶眼
   const ramp = (x0, x1, t, h) => `<rect x="${x0}" y="${t}" width="${x1 - x0}" height="${h}" fill="#4d5055"/>` +
     `<path d="M ${x0} ${t + 1} H ${x1} M ${x0} ${t + h - 1} H ${x1}" stroke="#b8bbc0" stroke-width="2"/>` +
     (h > 24 ? `<path d="M ${x0} ${t + h / 2} H ${x1}" stroke="#e6e7e9" stroke-width="1.6" stroke-dasharray="${G.compact ? '6 5' : '8 7'}"/>` : '');
-  // 完整的轉向列：橫向車道從路口接到兩側路牌
-  const full = (H, detail) => {
+  // 點開的細節：橫向車道接到兩側的完整路牌；右邊被路牌佔走，站名改寫在編號牌下面
+  const full = H => {
     const bt = (H - G.bandH) / 2, bb = bt + G.bandH;
     const extra = (nL ? ramp(G.side, vx0, bt, G.bandH) : '') + (nR ? ramp(vx1, W - G.side, bt, G.bandH) : '');
-    const slots = (nL ? hSlot(sc, G, 'L', side.L, H, detail) : '') + (nR ? hSlot(sc, G, 'R', side.R, H, detail) : '');
-    return hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H), gapL: nL ? [bt, bb] : null, gapR: nR ? [bt, bb] : null, extra }), html + slots);
+    const slots = (nL ? hSlot(sc, G, 'L', side.L, H, true) : '') + (nR ? hSlot(sc, G, 'R', side.R, H, true) : '');
+    const ex = exits.length ? `<span class="ex wrap">${exits.map(r => `<i>${r}</i>`).join('')}</span>` : '';
+    return hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H), gapL: nL ? [bt, bb] : null, gapR: nR ? [bt, bb] : null, extra }),
+      node(`<small>${nd.name}</small>${ex}`) + slots);
   };
-  // 路況頁收合時：路邊接出一小段車道，後面接一個可以點的小記號（只放盾牌；出口寫「出口」），看得出往哪一側能轉
-  const mini = H => {
+  // 路邊接出一小段車道，後面接記號：路況頁 kind='mark'（只放盾牌、點了展開；出口寫「出口」）；
+  // 主畫面 kind='sign'（小路牌：盾牌＋目標方向單字，同速度框的寫法；出口只寫「出口」，空間不夠寫往 XX）
+  const near = (H, kind) => {
     const t = (H - G.stubH) / 2;
     const extra = (nL ? ramp(vx0 - G.stubW, vx0, t, G.stubH) : '') + (nR ? ramp(vx1, vx1 + G.stubW, t, G.stubH) : '');
     const uniq = arr => arr.filter((x, k) => arr.findIndex(y => (y.stub ? 'stub' : y.road) === (x.stub ? 'stub' : x.road)) === k);
-    const mark = (arr, left) => `<span class="hc-mark" style="${left ? `right:${W - vx0 + G.stubW}px` : `left:${vx1 + G.stubW}px`}">${uniq(arr).map(x => (x.stub ? '<b>出口</b>' : shield(x.road, 18))).join('')}</span>`;
+    const items = arr => (kind === 'mark'
+      ? uniq(arr).map(x => (x.stub ? '<b>出口</b>' : shield(x.road, 16))).join('')
+      : arr.map(x => (x.stub ? '<span class="gsign s exit"><span>出口</span></span>' : `<span class="gsign s">${shield(x.road, 13)}<span>${dirLabel(x.dir)[0]}</span></span>`)).join(''));
+    const box = (arr, left) => `<span class="${kind === 'mark' ? 'hc-mark' : 'hc-near'}" style="${left ? `right:${W - vx0 + G.stubW}px` : `left:${vx1 + G.stubW}px`}">${items(arr)}</span>`;
     return hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H), gapL: nL ? [t, t + G.stubH] : null, gapR: nR ? [t, t + G.stubH] : null, extra }),
-      html + (nL ? mark(side.L, true) : '') + (nR ? mark(side.R, false) : ''));
+      node() + name + (nL ? box(side.L, true) : '') + (nR ? box(side.R, false) : ''));
   };
 
   let row, H;
-  if (!nL && !nR) {
-    H = G.labelH;
-    row = hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H) }), html);
+  const n = Math.max(nL, nR);
+  if (!n) {
+    H = Math.max(G.labelH, nameH);
+    row = hRow(G, H, hRoadSvg(G, H, { ...road, ...ys(H) }), node() + name);
   } else if (o.collapse) {
-    // 路況頁：預設只標「這裡可轉」，點一下展開成完整的轉向列（寫往 XX、標出哪些方向能用），再點收回
-    H = G.labelH;
-    const HF = Math.max(G.bandH + 16, Math.max(nL, nR) * (G.slotH + 14));
-    row = `<div class="hc-x" onclick="this.classList.toggle('open')"><div class="hc-xc">${mini(H)}</div><div class="hc-xo">${full(HF, true)}</div></div>`;
+    // 路況頁：預設只標「這裡可轉」，點一下展開成完整路牌（寫往 XX、方向方塊標出哪些方向能用），再點收回
+    H = Math.max(G.labelH, n * 18 + 8, nameH);
+    const HF = Math.max(G.bandH + 16, n * (G.slotH + 14));
+    row = `<div class="hc-x" onclick="this.classList.toggle('open')"><div class="hc-xc">${near(H, 'mark')}</div><div class="hc-xo">${full(HF)}</div></div>`;
   } else {
-    H = Math.max(G.bandH + (G.compact ? 12 : 16), Math.max(nL, nR) * G.slotH);
-    row = full(H, false);
+    // 主畫面：只列目前方向能轉的，直接在路邊放小路牌
+    H = Math.max(G.labelH, n * 19 + 6);
+    row = near(H, 'sign');
   }
   return { topEnd, row, bottomEnd, H };
 }
