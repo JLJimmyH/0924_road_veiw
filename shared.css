@@ -12,7 +12,7 @@ a { color: #1a66d6; }
 /* ===== 文件區 ===== */
 .doc { max-width: 1320px; margin: 0 auto; padding: 24px 24px 80px; }
 .doc h1 { font-size: 27px; margin: 4px 0 6px; line-height: 1.35; }
-.doc h1 .credit { display: block; font-size: 13px; font-weight: 400; color: #7a8394; letter-spacing: .3px; }
+.doc h1 .credit { display: table; margin-top: 8px; padding: 3px 14px; border-radius: 999px; background: #1d2330; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .5px; }
 .doc h2 { font-size: 20px; margin: 34px 0 12px; padding-top: 14px; border-top: 1px solid #d8dce3; }
 .doc p { margin: 6px 0; }
 .lead { color: #4a5263; font-size: 15px; max-width: 920px; }
