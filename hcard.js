@@ -109,9 +109,10 @@ function hEndBar(sc, G, lane, turns, pos, road) {
   const { vx0, vx1 } = hRoadX(G);
   const hasL = turns.L.length > 0, hasR = turns.R.length > 0;
   const size = G.compact ? 'm' : 'l';
-  let svg, label;
+  // 不管能不能轉都叫「{方向}終點」；能不能轉看線的兩端：有路牌和箭頭＝能轉，擋線＝不能轉
+  const label = `${dirLabel(lane)}終點`;
+  let svg;
   if (hasL || hasR) {
-    label = `${dirLabel(lane)}到底`;
     // 只能轉一邊時，封閉端的擋線畫在中間標籤外面、而且至少到路邊，才看得出那一邊不能轉
     const half = (label.length * (G.compact ? 10 : 12) + 12) / 2 + 10;
     const x0 = hasL ? 4 : Math.min(cx - half, vx0), x1 = hasR ? W - 4 : Math.max(cx + half, vx1);
@@ -121,7 +122,6 @@ function hEndBar(sc, G, lane, turns, pos, road) {
     svg += hasR ? `<path d="M ${x1 - 8} ${y - 5} L ${x1} ${y} L ${x1 - 8} ${y + 5}" stroke="#fff" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>` : `<path d="M ${x1} ${y - 7} V ${y + 7}" stroke="#fff" stroke-width="2.2"/>`;
   } else {
     svg = `<path d="M ${cx - 70} ${y} H ${cx + 70} M ${cx - 70} ${y - 8} V ${y + 8} M ${cx + 70} ${y - 8} V ${y + 8}" stroke="#fff" stroke-width="2.5"/>`;
-    label = `${dirLabel(lane)}終點`;
   }
   // 直行的路接到終點線為止（上緣往下、下緣往上），和相鄰的列連成一條
   const stub = pos === 'top' ? hRoadSvg(G, H, { ...road, y0: y }) : hRoadSvg(G, H, { ...road, y1: y });
@@ -332,6 +332,7 @@ function hSmallChips(sc, info) {
   const chip = (arr, left) => arr.map(g => `<span class="sside">${left ? '←' : ''}${hSign(g, 's')}${left ? '' : '→'}</span>`).join('');
   // 要轉的交流道就是上一行寫的下一站時，不再重寫站名
   const name = a.i === info.ahead[0].i ? '' : a.node.name;
-  const cap = `${name}${hIsEnd(sc, a.i, lane) ? '到底' : ''}`;
-  return `${cap ? `<span class="cap">${cap}</span>` : ''}${chip(t.L, true)}${chip(t.R, false)}`;
+  // 能轉的終點和沒得轉的終點一樣寫「{方向}終點」
+  const end = hIsEnd(sc, a.i, lane) ? `<span class="endtxt">${dirLabel(lane)}終點</span>` : '';
+  return `${name ? `<span class="cap">${name}</span>` : ''}${end}${chip(t.L, true)}${chip(t.R, false)}`;
 }
