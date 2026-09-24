@@ -1,0 +1,6 @@
+# 解密後的路網資料與衍生輸出，不要放進公開 repo
+freeways_all*.json
+*.enc
+link_geometry*.json
+*.decrypted.*
+__pycache__/
