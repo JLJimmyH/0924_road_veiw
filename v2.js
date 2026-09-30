@@ -7,6 +7,14 @@
  * 原版（對照用）照現有資料和原本的邏輯重現：依 roadID 去重、只放盾牌（_linksAtEndpoint、_EndpointPill）。 */
 'use strict';
 
+// 路況頁上方分頁的圖示
+const HICON = {
+  road: '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M12 6v3M12 11v3M12 16v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor"/></svg>',
+  map: '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>',
+  rest: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="14" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/></svg>',
+};
+
 // 這個方向的車道在交流道 i 能轉去的道路。原版：現有資料（trRaw）、依 roadID 去重；v2：正確資料、依 roadID＋方向去重
 function olLinks(sc, i, lane, v2) {
   const nd = sc.nodes[i];

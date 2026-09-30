@@ -1,6 +1,6 @@
 # 寫進 haodriveo app
 
-> ⚠ 這份還是最早「卡片盒」版本的寫法，部分過時。最新畫法以 `hcard.js` 和 [`progress.md`](progress.md) 為準；資料欄位、演算法、app 相關程式的說明仍可參考。
+> ⚠ 這份是 v1（卡片／連續路面）時期寫的，現在改以 v2（沿用 app 原版版面）為主，畫法不適用；最新狀態見 [`progress.md`](progress.md)。資料欄位、剩餘里程演算法、app 相關程式的說明仍可參考。
 
 以 app repo 的 `origin/jack` 分支為準（`finn-test` 比較舊）。畫法看 [`spec.md`](spec.md)，外觀對照 mockup 的 `index.html`。每一步做到完成條件才進下一步。
 

@@ -1,30 +1,26 @@
-# 國道路況：轉接與終點顯示
+# 國道路況：轉接顯示
 
-haodriveo app「國道/快速道路路況」頁與行車主畫面的新畫法。這個 repo 是互動式 mockup 與交接文件；最後要實作在 haodriveo Flutter app（`origin/jack` 分支的 `lib/`）。
+haodriveo app「國道/快速道路路況」頁（之後含行車主畫面）轉接顯示的改版。這個 repo 是互動式 mockup 與交接文件；最後要實作在 haodriveo Flutter app（`origin/jack` 分支的 `lib/`）。
 
-**先讀 [`docs/progress.md`](docs/progress.md)**：最新狀態、所有待辦（包含還沒做的新需求）、怎麼接著做。
+**先讀 [`docs/progress.md`](docs/progress.md)**：最新狀態、v2 待修清單、要請後端處理的資料、怎麼接著做。
 
-## 核心規則（v1，`index.html`＋`hcard.js`）
+## 核心規則（v2：沿用 app 原版版面，只修轉接）
 
-- **一條連續的直行路**，由上往下＝里程增加；北上／西向往上走、南下／東向往下走。整串包在一個大區塊裡，區塊內不分隔。
-- **交流道**：路上只放黃底的出口編號牌，只寫里程數字（休息站藍底）；站名放在路右邊固定的站名欄。
-- **車速**夾在兩站之間＝那一段的平均車速；速度框只寫方向單字＋車速。
-- **左右＝接其他道路**，依地圖方位；只有真的能接的那一側才畫。路況頁收合成記號、點開才看路牌（方向方塊 `[北][南]` 標出哪些方向能用）；主畫面直接放小路牌。
-- **終點**一律叫「{方向}終點」，畫在前方；能不能轉看終點線兩端。
-- **出口**：轉入後 2 km 內就到終點的轉接，寫「出口 往 XX」。
-- **主畫面**＝同一種畫法縮小，聚焦目前行駛方向。
-- 只用水平、垂直的線（箭頭頭部除外）。
+- 版面照 app 原版：交流道是一整列的膠囊，兩站之間是兩條直式色條（左＝南下／東向、右＝北上／西向）。
+- **膠囊左右＝哪個車道能轉**：左邊是左車道（南下／東向）能轉的、右邊是右車道（北上／西向）能轉的。
+- 只顯示真的能轉的方向；依「路線＋方向」去重；盾牌旁寫目標方向（「北上」「東向」）。
+- 終點、入口、出口、主畫面還沒做，見 progress.md。
 
-v2（`v2.html`＋`v2.js`）是另一條路線：沿用 app 原版版面，只修轉接顯示，見 `docs/progress.md`。
+v1（連續路面＋出口編號牌）已經不用，最後版本在 git tag `v1-final`。
 
 ## 文件
 
 - [`docs/progress.md`](docs/progress.md)：最新狀態與待辦（先讀）。
-- [`docs/decisions.md`](docs/decisions.md)：早期定案的決定與被否決的做法（之後的決定記在 progress.md）。
-- [`docs/spec.md`](docs/spec.md)、[`docs/app-integration.md`](docs/app-integration.md)、[`docs/acceptance.md`](docs/acceptance.md)：**還是卡片版的寫法，部分過時**；資料欄位、左右與剩餘里程的演算法、app 相關程式仍可參考，畫法以 `hcard.js` 和 progress.md 為準。
+- [`docs/decisions.md`](docs/decisions.md)：v1 時期的決定與被否決的做法（歷史紀錄）。
+- [`docs/spec.md`](docs/spec.md)、[`docs/app-integration.md`](docs/app-integration.md)、[`docs/acceptance.md`](docs/acceptance.md)：v1 時期寫的，畫法不適用；資料欄位、剩餘里程演算法、app 相關程式的說明仍可參考。
 
 ## Mockup
 
-- `index.html`（v1）、`v2.html`（v2）：瀏覽器直接開；`#t64`／`#t61`／`#n3` 切情境，`?full` 展開整條列表，`&expand` 把轉接記號全部展開。
-- `shared.js`：情境資料與行車計算；`shared.css`：顏色與尺寸；圖片在 `assets/freeway/`（檔名＝`roadID.png`，和 app 的 `assets/images/freeway/` 相同）。
-- `tools/link_geometry.py`：從解密後的路網資料算出每筆轉接的左右與剩餘里程（資料放在 repo 外）。
+- `index.html`：瀏覽器直接開；`#t64`／`#t61`／`#n3` 切情境，`?full` 展開整條列表。畫法在 `v2.js`，樣式在 `shared.css`（`.ol-*`），情境資料與行車計算在 `shared.js`。
+- 圖片在 `assets/freeway/`（檔名＝`roadID.png`，和 app 的 `assets/images/freeway/` 相同）。
+- `tools/`：從解密後的路網資料計算（剩餘里程、找可能漏掉的轉接）；資料放在 repo 外。

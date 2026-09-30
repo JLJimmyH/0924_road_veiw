@@ -29,19 +29,6 @@ const TOWARD = {
   '000031|E': '深坑', '000031|W': '台北',
 };
 
-// 用路段座標算出的方位：卡片由上往下＝里程增加時，目的道路在左邊（L）還是右邊（R）。
-// 全路網 261 筆轉接中 234 筆可判定左右，27 筆兩路平行（沒有值時預設右邊）。
-const GEO = {
-  t61: { '八里二': { '100640|E': 'R' }, '觀音': { '100660|E': 'R' } },
-  t64: { '八里二': { '100610|N': 'R', '100610|S': 'L' }, '中和': { '000030|N': 'R', '000030|S': 'L' } },
-  n3: {
-    '瑪東系統': { '100620|E': 'R' },
-    '汐止系統': { '000010|N': 'R', '000010|S': 'L' },
-    '南港系統': { '000050|S': 'R' },
-    '木柵': { '000031|E': 'R', '000031|W': 'L' },
-  },
-};
-
 // 轉入目的方向後，還剩幾公里就到該方向終點（目標 section 起點里程到該方向最後一段終點里程）。
 // 剩不到 STUB_KM 的轉接畫成「出口 往 XX」，不寫路線和方向（例如國3甲東向從木柵只剩 0.6 km 就到深坑端）。
 const STUB_KM = 2;
@@ -188,10 +175,6 @@ function destGroups(sc, i) {
   }
   return [...map.values()];
 }
-function geoSide(sc, i, road, dir) {
-  const g = GEO[sc.key] && GEO[sc.key][sc.nodes[i].name];
-  return (g && g[road + '|' + dir]) || 'R';
-}
 function isStub(sc, i, road, dir) {
   const r = REMAIN_KM[sc.key] && REMAIN_KM[sc.key][sc.nodes[i].name];
   const km = r ? r[road + '|' + dir] : undefined;
@@ -273,9 +256,6 @@ function buildPage(cfg) {
   const stage = document.getElementById('stage');
   const state = { key: Object.keys(SCENARIOS)[0] };
   if (new URLSearchParams(location.search).has('full')) document.body.classList.add('full'); // 檢查用：整條列表展開
-  if (new URLSearchParams(location.search).has('expand')) document.body.classList.add('expand'); // 檢查用：轉接記號全部展開
-  // 版本切換（v1／v2）帶著目前的情境過去
-  const syncVer = () => document.querySelectorAll('.ver a[data-page]').forEach(a => { a.href = a.dataset.page + location.hash; });
   const hashKey = location.hash.slice(1); // 網址 #t61、#n3 可直接開指定情境
   if (SCENARIOS[hashKey]) state.key = hashKey;
   scn.innerHTML = Object.values(SCENARIOS).map(s => `<button data-k="${s.key}">${s.label}<small>${s.sub}</small></button>`).join('');
@@ -284,7 +264,6 @@ function buildPage(cfg) {
     if (!b) return;
     state.key = b.dataset.k;
     history.replaceState(null, '', '#' + state.key);
-    syncVer();
     draw();
   });
   function draw() {
@@ -292,6 +271,5 @@ function buildPage(cfg) {
     scn.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === state.key));
     stage.innerHTML = cfg.render(sc).map(f => `<figure class="fig"><div class="phone">${f.html}</div><figcaption>${f.cap}</figcaption></figure>`).join('');
   }
-  syncVer();
   draw();
 }
